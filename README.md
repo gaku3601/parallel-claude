@@ -239,11 +239,48 @@ node test-pty.js
 
 ## ビルドとパッケージング
 
-本番用ビルド（未実装 - Phase 8）:
+### リリースビルドの作成
+
+本番用の配布可能なインストーラーを作成するには：
 
 ```bash
-npm run build
 npm run package
+```
+
+このコマンドは以下を実行します：
+1. Viteでレンダラープロセスをビルド（`npm run build:vite`）
+2. TypeScriptでメインプロセスをビルド（`npm run build:electron`）
+3. electron-builderでパッケージング
+
+### 生成されるファイル
+
+ビルド成功後、`dist/` フォルダに以下が生成されます：
+
+- **`Parallel Claude Setup 0.1.0.exe`** - NSISインストーラー（配布用）
+- **`win-unpacked/Parallel Claude.exe`** - インストール不要の実行ファイル
+- **`latest.yml`** - 自動更新用メタデータ
+
+### よくある問題
+
+#### シンボリックリンクエラー
+
+electron-builder 24.13.3以降でビルド時に以下のエラーが出る場合：
+
+```
+ERROR: Cannot create symbolic link : A required privilege is not held by the client
+```
+
+**原因**: winCodeSign内のmacOS用シンボリックリンクを作成する権限がない
+
+**解決方法**: 本プロジェクトでは `electron-builder@24.6.3` を使用しています。この問題を回避するため、package.jsonでバージョンを固定しています。
+
+#### HTMLが表示されない（白い画面）
+
+ビルド後のアプリで何も表示されない場合、HTMLファイルのパスが間違っている可能性があります。
+
+**確認ポイント**: `src/main/index.ts` の29行目で正しいパスを指定
+```typescript
+mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
 ```
 
 ## プロジェクト構造

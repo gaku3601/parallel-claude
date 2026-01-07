@@ -9,7 +9,9 @@
       "Bash(npm run rebuild:*)",
       "Bash(gh issue view:*)",
       "WebSearch",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(npm run package:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
