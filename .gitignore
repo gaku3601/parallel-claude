@@ -1,1 +1,28 @@
+# IDE
 .idea
+.vscode
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+release
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Claude Code settings
+.claude/settings.local.json
+
+# Temporary files
+nul
