@@ -14,6 +14,63 @@ const Terminal: React.FC<TerminalProps> = ({ terminalId, worktreePath }) => {
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
 
+  // クリップボード画像の貼り付け処理
+  const handleImagePaste = async (blob: Blob) => {
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const result = await window.electronAPI.saveClipboardImage(arrayBuffer, blob.type);
+
+      if (result.success && result.filePath) {
+        await window.electronAPI.sendFileToTerminal(terminalId, result.filePath);
+        if (xtermRef.current) {
+          xtermRef.current.write(`\r\n[File attached: ${result.filePath}]\r\n`);
+        }
+      } else {
+        throw new Error(result.error || 'ファイル保存に失敗しました');
+      }
+    } catch (err: any) {
+      console.error('Image paste failed:', err);
+      if (xtermRef.current) {
+        xtermRef.current.write(`\r\n[Error] ${err.message}\r\n`);
+      }
+    }
+  };
+
+  // Ctrl+V 貼り付け処理
+  const handlePaste = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+
+      // 画像を優先的に処理
+      for (const item of clipboardItems) {
+        if (item.types.includes('image/png')) {
+          const blob = await item.getType('image/png');
+          await handleImagePaste(blob);
+          return;
+        }
+      }
+
+      // テキスト処理
+      const text = await navigator.clipboard.readText();
+      window.electronAPI.writeToTerminal(terminalId, text);
+    } catch (err) {
+      console.error('Clipboard read failed:', err);
+      // エラーの場合は何もしない（デフォルトの貼り付け動作にフォールバック）
+    }
+  };
+
+  // ファイル選択ボタンのハンドラ
+  const handleFileSelect = async () => {
+    const result = await window.electronAPI.selectFile();
+
+    if (result.success && result.filePath) {
+      await window.electronAPI.sendFileToTerminal(terminalId, result.filePath);
+      if (xtermRef.current) {
+        xtermRef.current.write(`\r\n[File attached: ${result.filePath}]\r\n`);
+      }
+    }
+  };
+
   useEffect(() => {
     if (!terminalRef.current) return;
 
@@ -63,6 +120,16 @@ const Terminal: React.FC<TerminalProps> = ({ terminalId, worktreePath }) => {
         fitAddonRef.current.fit();
       }
     }, 0);
+
+    // Ctrl+V キーボードイベントハンドリング
+    xterm.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'v' && event.type === 'keydown') {
+        event.preventDefault();
+        handlePaste();
+        return false;
+      }
+      return true;
+    });
 
     // ユーザー入力をnode-ptyに送信
     xterm.onData((data) => {
@@ -127,8 +194,17 @@ const Terminal: React.FC<TerminalProps> = ({ terminalId, worktreePath }) => {
   }, [terminalId, worktreePath]);
 
   return (
-    <div className={styles.terminal}>
-      <div ref={terminalRef} className={styles.terminalContainer} />
+    <div className={styles.terminalWrapper}>
+      <div ref={terminalRef} className={styles.terminal} />
+      <div className={styles.toolbar}>
+        <button
+          className={styles.fileButton}
+          onClick={handleFileSelect}
+          title="ファイルを選択して添付"
+        >
+          📎 ファイル添付
+        </button>
+      </div>
     </div>
   );
 };

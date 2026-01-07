@@ -27,6 +27,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   killTerminal: (terminalId: string) =>
     ipcRenderer.invoke('terminal:kill', terminalId),
 
+  // ファイル操作
+  saveClipboardImage: (imageData: ArrayBuffer, mimeType: string) =>
+    ipcRenderer.invoke('file:saveClipboardImage', Buffer.from(imageData), mimeType),
+  selectFile: () => ipcRenderer.invoke('file:selectFile'),
+  sendFileToTerminal: (terminalId: string, filePath: string) =>
+    ipcRenderer.invoke('file:sendToTerminal', terminalId, filePath),
+
   // ターミナルイベント
   onTerminalData: (callback: (data: { terminalId: string; data: string }) => void) => {
     ipcRenderer.on('terminal:data', (event, data) => callback(data));

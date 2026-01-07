@@ -6,7 +6,10 @@
       "Bash(npm run dev:*)",
       "Bash(npm run dev:vite:*)",
       "Bash(npm install:*)",
-      "Bash(npm run rebuild:*)"
+      "Bash(npm run rebuild:*)",
+      "Bash(gh issue view:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.anthropic.com)"
     ]
   }
 }

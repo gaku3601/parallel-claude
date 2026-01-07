@@ -18,6 +18,27 @@ export interface IElectronAPI {
   resizeTerminal: (terminalId: string, cols: number, rows: number) => Promise<any>;
   killTerminal: (terminalId: string) => Promise<any>;
 
+  // ファイル操作
+  saveClipboardImage: (
+    imageData: ArrayBuffer,
+    mimeType: string
+  ) => Promise<{
+    success: boolean;
+    filePath?: string;
+    error?: string;
+  }>;
+  selectFile: () => Promise<{
+    success: boolean;
+    filePath?: string;
+  }>;
+  sendFileToTerminal: (
+    terminalId: string,
+    filePath: string
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
+
   // ターミナルイベント
   onTerminalData: (callback: (data: { terminalId: string; data: string }) => void) => void;
   onTerminalExit: (callback: (data: { terminalId: string; exitCode: number }) => void) => void;

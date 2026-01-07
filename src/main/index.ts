@@ -3,11 +3,13 @@ import path from 'path';
 import { setupGitIPC } from './ipc/git';
 import { setupTerminalIPC } from './ipc/terminal';
 import { TerminalService } from './services/TerminalService';
+import { FileService } from './services/FileService';
 
 const isDev = process.env.NODE_ENV === 'development';
 
 let mainWindow: BrowserWindow | null = null;
 let terminalService: TerminalService | null = null;
+let fileService: FileService | null = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -30,6 +32,9 @@ function createWindow() {
   // TerminalServiceを初期化
   terminalService = new TerminalService(mainWindow);
 
+  // FileServiceを初期化
+  fileService = new FileService();
+
   mainWindow.on('closed', () => {
     // すべてのターミナルを終了
     if (terminalService) {
@@ -45,8 +50,8 @@ app.whenReady().then(() => {
 
   // Setup IPC handlers
   setupGitIPC();
-  if (terminalService) {
-    setupTerminalIPC(terminalService);
+  if (terminalService && fileService) {
+    setupTerminalIPC(terminalService, fileService);
   }
 
   app.on('activate', () => {
